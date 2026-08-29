@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.so
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store
+
+# Medical data
+data/
+*.dcm
+
+# Generated results
+outputs/
+proj_ima/
+
+# Temporary files
+*.log
