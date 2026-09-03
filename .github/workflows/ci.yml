@@ -26,7 +26,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-     - name: Verify imports
+      - name: Verify imports
         run: |
           python -c "from src.liver_segmentation.config import SegmentationConfig"
           python -c "from src.liver_segmentation.data_io import load_ct_volume, get_slice"
