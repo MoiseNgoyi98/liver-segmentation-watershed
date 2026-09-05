@@ -1,274 +1,140 @@
-# Liver Segmentation Based on Watershed and Region Merging
+(.venv) user@moses-ngoyi:~/Documenti/University_of_Politecnico_di_BARI/Cours_master_one/Images_Processing/Project_Liver_Segmentation$ cat README.md
+# Liver Segmentation Using Watershed and Region Merging
 
-A classical medical image segmentation project for liver extraction from abdominal CT images, developed as part of the **Image Processing** course at **Politecnico di Bari**.
+A reproducible implementation of a classical medical image segmentation
+method for liver extraction from abdominal CT images, based on watershed
+segmentation and recursive region merging.
 
-The project reproduces and implements a segmentation methodology based on **watershed segmentation and region merging**, inspired by the following paper:
+This project reproduces the methodology described in the paper:
 
-> Huang Zhanpeng, Zhang Qi, Jiang Shizhong, Chen Guohua, *Medical Image Segmentation Based on the Watersheds and Regions Merging*, 2016.
+> Medical Image Segmentation Based on the Watersheds and Regions Merging
 
-**Author:** Moise Ngoyi Kasanji
-**Institution:** Politecnico di Bari
-**Course:** Image Processing
-**Supervisor:** Prof. Andrea Guerriero
-
----
-
-## 1. Project Overview
-
-The objective of this project is to extract the **liver region from abdominal CT images** using classical image-processing techniques rather than deep learning.
-
-The implemented pipeline combines:
-
-* seed-based region initialization
-* Gaussian smoothing
-* multi-scale morphological gradients
-* watershed segmentation
-* Region Adjacency Graph (RAG)
-* intensity-based region merging
-* connected-component analysis
-* hole filling
-* quantitative evaluation against ground-truth liver masks
-
-The project was initially developed and presented as part of the **Image Processing examination**.
-
-After the examination implementation was validated, an additional experimental phase was conducted to investigate the robustness of the method when changing the seed selection strategy and evaluating multiple CT slices.
+The implementation uses the 3D-IRCADb-01 dataset and focuses on
+slice-based liver segmentation from DICOM CT volumes.
 
 ---
 
-# 2. Project Development
+## Overview
 
-The project can be understood as two complementary phases.
+Liver segmentation is an important preprocessing step in medical image
+analysis and computer-aided diagnosis.
 
-## Phase 1 — Examination Implementation
+The objective of this project is to reproduce and implement a classical
+image segmentation pipeline combining:
 
-The first phase corresponds to the implementation presented for the **Image Processing examination**.
+- CT image preprocessing
+- Gaussian smoothing
+- Multi-scale morphological gradients
+- Watershed segmentation
+- Region Adjacency Graph (RAG)
+- Region-based intensity analysis
+- Recursive region merging
+- Connected-component filtering
+- Hole filling
 
-A manually selected seed point was used to initialize the segmentation process.
+The final output is a binary mask representing the segmented liver region.
 
-For the original experiment:
+---
+
+## Methodology
+
+The implemented pipeline follows the following processing sequence:
 
 ```text
-Manual seed
-    ↓
-Similarity criterion
-    ↓
-Gaussian smoothing
-    ↓
-Multi-scale morphological gradient
-    ↓
-Watershed segmentation
-    ↓
+DICOM CT Volume
+       │
+       ▼
+CT Slice Extraction
+       │
+       ▼
+Seed Detection
+       │
+       ▼
+Weighted Similarity Criterion
+       │
+       ▼
+Gaussian Smoothing
+       │
+       ▼
+Multi-scale Morphological Gradient
+       │
+       ▼
+Watershed Segmentation
+       │
+       ▼
 Region Adjacency Graph
-    ↓
-Region merging
-    ↓
-Largest connected component
-    ↓
-Hole filling
-    ↓
-Final liver mask
-    ↓
-Quantitative evaluation
+       │
+       ▼
+Region Mean Intensities
+       │
+       ▼
+Recursive Region Merging
+       │
+       ▼
+Binary Merged Mask
+       │
+       ▼
+Largest Connected Component
+       │
+       ▼
+Hole Filling
+       │
+       ▼
+Final Liver Segmentation
 ```
 
-The experiment was performed on **slice 60** of the selected 3D-IRCADb1 patient.
+A detailed description of the methodology is available in:
 
-### Seed configuration
+[Methodology](docs/methodology.md)
 
-```text
-seed_x = 200
-seed_y = 250
-```
+Experimental results and multi-slice evaluation are documented in:
 
-### Results
-
-| Metric             |       Slice 60 |
-| ------------------ | -------------: |
-| Dice Score         |     **0.9313** |
-| IoU Score          |     **0.8714** |
-| Sensitivity        |     **0.9885** |
-| Specificity        |     **0.9830** |
-| Hausdorff Distance | **21.5870 px** |
-
-These results demonstrate that the proposed classical segmentation pipeline can achieve a strong segmentation result for the evaluated slice.
-
-However, these values should **not** be interpreted as a dataset-wide performance benchmark because they were obtained from a single evaluated slice.
+[Experiments](docs/experiments.md)
 
 ---
 
-# 3. Experimental Extension
+## Dataset
 
-After completing the examination implementation, the project was extended to investigate one of its important limitations: **the dependency on the manually selected seed point**.
+The project uses the **3D-IRCADb-01** dataset.
 
-Using fixed coordinates such as:
+The dataset contains abdominal CT scans together with manually annotated
 
-```text
-seed_x = 200
-seed_y = 250
-```
+organ masks.
 
-can introduce a bias when different CT slices are evaluated because the anatomical position of the liver changes from slice to slice.
+For this project, CT DICOM images and corresponding liver masks are used
 
-Therefore, an experimental automatic seed-selection module was introduced.
+to evaluate the segmentation pipeline.
 
-The extended workflow became:
+The medical dataset itself is **not included in this repository**.
 
-```text
-CT slice
-    ↓
-Candidate seed generation
-    ↓
-Local homogeneity scoring
-    ↓
-Automatic seed selection
-    ↓
-Segmentation pipeline
-    ↓
-Quantitative evaluation
-```
+Users must obtain the dataset from its official source and configure the
 
-The automatic seed detector generates several candidate points inside a central region of the image and selects a candidate according to its local intensity homogeneity.
+local dataset path before running the experiments.
 
 ---
 
-# 4. Multi-Slice Evaluation
-
-The extended implementation was evaluated on five CT slices:
+## Project Structure
 
 ```text
-40
-50
-60
-70
-80
-```
-
-For each slice, the system automatically selected a seed and independently executed the complete segmentation pipeline.
-
-The following metrics were computed:
-
-* Dice Score
-* IoU
-* Sensitivity
-* Specificity
-* Hausdorff Distance
-
-The results were also exported to CSV files to facilitate further analysis.
-
-### Experimental results
-
-| Slice |   Dice |    IoU | Sensitivity | Specificity | Hausdorff (px) |
-| ----: | -----: | -----: | ----------: | ----------: | -------------: |
-|    40 | 0.0000 | 0.0000 |      0.0000 |      0.7269 |       343.7586 |
-|    50 | 0.3021 | 0.1779 |      1.0000 |      0.5749 |       277.1372 |
-|    60 | 0.0000 | 0.0000 |      0.0000 |      0.9670 |       266.3400 |
-|    70 | 0.0000 | 0.0000 |      0.0000 |      1.0000 |              ∞ |
-|    80 | 0.0000 | 0.0000 |      0.0000 |      0.7416 |       290.6888 |
-
-The corresponding mean ± standard deviation was:
-
-| Metric             |      Mean ± Std |
-| ------------------ | --------------: |
-| Dice               | 0.0604 ± 0.1351 |
-| IoU                | 0.0356 ± 0.0796 |
-| Sensitivity        | 0.2000 ± 0.4472 |
-| Specificity        | 0.8021 ± 0.1784 |
-| Hausdorff Distance |         ∞ ± NaN |
-
----
-
-# 5. Interpretation of the Experimental Results
-
-The multi-slice experiment revealed an important limitation of the current automatic seed-selection strategy.
-
-Although the original manually initialized experiment produced a strong Dice score of **0.9313** on slice 60, the automatic strategy did not consistently identify an appropriate liver seed across different slices.
-
-This resulted in substantially poorer segmentation performance.
-
-This experiment is therefore not considered a failure of the entire segmentation methodology. Instead, it identifies a specific weakness in the current implementation:
-
-> **The automatic seed-selection strategy based primarily on local intensity homogeneity is not sufficiently robust for reliable multi-slice liver segmentation.**
-
-This observation is useful because it identifies a concrete direction for future development.
-
----
-
-# 6. Methodology
-
-The complete segmentation pipeline is composed of the following stages:
-
-```text
-DICOM CT volume
-       ↓
-CT slice extraction
-       ↓
-Seed selection
-       ↓
-Weighted similarity criterion
-       ↓
-Gaussian smoothing
-       ↓
-Multi-scale morphological gradient
-       ↓
-Watershed segmentation
-       ↓
-Region Adjacency Graph
-       ↓
-Region mean intensity computation
-       ↓
-Recursive region merging
-       ↓
-Binary merged mask
-       ↓
-Largest connected component
-       ↓
-Hole filling
-       ↓
-Final liver mask
-       ↓
-Ground-truth comparison
-       ↓
-Quantitative metrics
-```
-
-The implementation is deliberately modular so that individual components can be improved independently.
-
----
-
-# 7. Dataset
-
-The experiments use the **3D-IRCADb-01** dataset.
-
-The medical dataset is **not included in this repository**.
-
-Expected local structure:
-
-```text
-data/
-└── 3Dircadb1/
-    └── 3Dircadb1.4/
-        ├── PATIENT_DICOM/
-        └── MASKS_DICOM/
-            └── liver/
-```
-
-The dataset should be obtained from the appropriate official source and placed locally according to the structure above.
-
----
-
-# 8. Repository Structure
-
-```text
-Project_Liver_Segmentation/
+liver-segmentation-watershed/
 │
-├── data/                              # Local medical dataset (ignored)
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 │
-├── outputs/                           # Generated results (ignored)
-│   └── evaluation/
-│       ├── metrics_per_slice.csv
-│       ├── metrics_summary.csv
-│       ├── seeds/
-│       └── visualizations/
+├── docs/
+│   ├── experiments.md
+│   ├── methodology.md
+│   └── figures/
+│       ├── multi_slice/
+│       └── reference/
+│
+├── scripts/
+│   ├── evaluate_multiple_slices.py
+│   ├── evaluate_segmentation.py
+│   ├── run_segmentation.py
+│   ├── visualize_evaluation.py
+│   └── visualize_seeds.py
 │
 ├── src/
 │   └── liver_segmentation/
@@ -285,200 +151,263 @@ Project_Liver_Segmentation/
 │       ├── visualization.py
 │       └── watershed_segmentation.py
 │
-├── scripts/
-│   ├── evaluate.py
-│   ├── evaluate_multiple_slices.py
-│   ├── evaluate_segmentation.py
-│   ├── run_segmentation.py
-│   ├── visualize_evaluation.py
-│   └── visualize_seeds.py
-│
-├── requirements.txt
 ├── .gitignore
-└── README.md
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
 ---
 
-# 9. Installation
+## Installation
 
-Clone the repository and create a Python virtual environment:
+### 1. Clone the repository
 
-```bash
-python -m venv .venv
+```text
+git clone git@github.com:MoiseNgoyi98/liver-segmentation-watershed.git
+cd liver-segmentation-watershed
+```
+
+### 2. Create a virtual environment
+
+Python 3.11 is recommended.
+
+```text
+python3.11 -m venv .venv
+```
+
+### 3. Activate the virtual environment
+
+On Linux/macOS:
+
+```text
 source .venv/bin/activate
 ```
 
-Install the dependencies:
+### 4. Install dependencies
 
-```bash
+```text
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ---
 
-# 10. Running the Segmentation
+## Configuration
 
-To execute the segmentation pipeline:
+The segmentation pipeline uses a configuration object defined in:
 
-```bash
+```text
+src/liver_segmentation/config.py
+```
+
+The configuration contains parameters related to:
+
+-  CT dataset location
+-  selected slice
+-  seed detection
+-  Gaussian smoothing
+-  morphological gradient scales
+-  region merging
+-  post-processing
+
+Before running the pipeline, make sure that the dataset paths correspond
+
+to your local installation of 3D-IRCADb-01.
+
+---
+
+## Running the Segmentation
+
+The main segmentation pipeline can be executed using:
+
+```text
 python scripts/run_segmentation.py
 ```
 
-Alternatively, when using the package/module structure:
+The pipeline processes the selected CT slice and produces the corresponding
 
-```bash
-python -m scripts.run_segmentation
-```
+liver segmentation.
 
 ---
 
-# 11. Single-Slice Evaluation
+## Evaluation
 
-The original examination experiment can be evaluated using:
+The repository provides evaluation utilities for comparing the predicted
 
-```bash
-python -m scripts.evaluate_segmentation
-```
+segmentation with the reference liver mask.
 
-This evaluates the configured slice against the corresponding ground-truth liver mask.
+The implemented metrics include:
 
----
+-  Dice Similarity Coefficient (DSC)
+-  Intersection over Union (IoU)
+-  Sensitivity
+-  Specificity
+-  Hausdorff Distance
 
-# 12. Multi-Slice Evaluation
-
-The experimental multi-slice evaluation can be executed with:
-
-```bash
-python -m scripts.evaluate_multiple_slices
-```
-
-The current experiment evaluates:
+Evaluation scripts are available in:
 
 ```text
-40, 50, 60, 70, 80
+scripts/evaluate_segmentation.py
+scripts/evaluate_multiple_slices.py
 ```
 
-Results are stored locally in:
+---
+
+## Results
+
+The reproduced segmentation experiment achieved the following results on
+
+the evaluated reference slice:
+
+| Metric | Score |
+|--------|------:|
+| Dice Score | 0.9313 |
+| IoU Score | 0.8714 |
+| Sensitivity | 0.9885 |
+| Specificity | 0.9830 |
+| Hausdorff Distance | 21.587 |
+
+These results demonstrate a strong overlap between the predicted liver
+
+segmentation and the reference annotation for the evaluated slice.
+
+---
+
+## Visual Results
+
+### Segmentation Pipeline
+
+[Segmentation Pipeline](docs/figures/reference/segmentation_pipeline.png)
+
+### Slice 60 Comparison
+
+[Slice 60 Comparison](docs/figures/reference/slice_60_comparison.png)
+
+### Multi-Slice Evaluation
+
+The repository also contains visual comparisons for several CT slices:
+
+| Slice | Result |
+|-------|--------|
+| 40 | [View result](docs/figures/multi_slice/slice_40_comparison.png) |
+| 50 | [View result](docs/figures/multi_slice/slice_50_comparison.png) |
+| 60 | [View result](docs/figures/multi_slice/slice_60_comparison.png) |
+| 70 | [View result](docs/figures/multi_slice/slice_70_comparison.png) |
+| 80 | [View result](docs/figures/multi_slice/slice_80_comparison.png) |
+
+More details about the experiments are available in:
+
+[Experimental Results](docs/experiments.md)
+
+---
+
+## Reproducibility
+
+The project is organized into modular components covering:
+
+-  data loading
+-  preprocessing
+-  seed detection
+-  watershed segmentation
+-  region merging
+-  post-processing
+-  evaluation
+-  visualization
+
+This modular structure makes it possible to reproduce individual stages
+
+of the segmentation pipeline and evaluate different experimental
+
+configurations.
+
+The original medical dataset is intentionally excluded from version
+
+control.
+
+---
+
+## Continuous Integration
+
+GitHub Actions is used to perform automated checks on every push to
+
+`main` and on pull requests targeting `main`.
+
+The current CI workflow verifies:
+
+-  Python environment setup
+-  dependency installation
+-  successful imports of the main project modules
+
+The workflow configuration is located at:
 
 ```text
-outputs/evaluation/
-```
-
-including:
-
-```text
-metrics_per_slice.csv
-metrics_summary.csv
+.github/workflows/ci.yml
 ```
 
 ---
 
-# 13. Visualization
+## Technologies
 
-The project also provides scripts for visual inspection of the segmentation results.
+The project is implemented in Python using:
 
-To visualize the selected seeds:
-
-```bash
-python -m scripts.visualize_seeds
-```
-
-To generate multi-slice segmentation comparisons:
-
-```bash
-python -m scripts.visualize_evaluation
-```
-
-These visualizations make it possible to compare the predicted segmentation with the ground-truth masks.
+-  Python 3.11
+-  NumPy
+-  SciPy
+-  scikit-image
+-  pydicom
+-  NetworkX
+-  pandas
+-  Matplotlib
 
 ---
 
-# 14. Design Principles
+## Limitations
 
-The implementation follows several software-engineering principles:
+This project is primarily a reproduction and implementation of a classical
 
-* modular processing functions
-* separation between processing and visualization
-* configuration-based parameters
-* reusable segmentation components
-* explicit intermediate results
-* reproducible experiments
-* quantitative evaluation
-* separation of experimental outputs from source code
+image segmentation methodology.
 
-The pipeline is designed so that individual components, such as seed detection or region merging, can be replaced without rewriting the entire system.
+The current implementation has several limitations:
 
----
-
-# 15. Limitations
-
-The current implementation has several limitations.
-
-### Seed dependence
-
-The original method relies on a manually selected seed point, while the current automatic strategy is not sufficiently robust across different slices.
-
-### 2D evaluation
-
-The current experiments operate on individual 2D CT slices rather than performing complete 3D liver segmentation.
-
-### Limited evaluation
-
-The reported experiments were conducted on a limited number of slices from a single patient.
-
-Consequently, the results should not be interpreted as a general clinical or dataset-wide benchmark.
-
-### Classical segmentation limitations
-
-Watershed segmentation can produce a large number of regions, making the quality of the final result highly dependent on the gradient representation, similarity criterion, seed selection, and region-merging strategy.
+-  evaluation is performed on selected CT slices;
+-  the approach is based on intensity and region-based criteria;
+-  watershed segmentation can produce over-segmentation;
+-  region merging depends on the selected parameters;
+-  the medical dataset is not distributed with the repository.
 
 ---
 
-# 16. Future Work
+## Future Work
 
-Several improvements could be investigated in future versions:
+Potential extensions include:
 
-* anatomically informed automatic seed detection
-* multi-seed initialization
-* adaptive seed selection
-* improved region similarity criteria
-* 3D watershed segmentation
-* multi-slice and multi-patient evaluation
-* parameter sensitivity analysis
-* comparison with alternative classical segmentation methods
-* comparison with modern deep-learning approaches
-* statistical analysis across a larger dataset
-
-The automatic seed-selection experiment provides a concrete starting point for these future improvements.
+-  evaluation on a larger number of CT slices;
+-  quantitative comparison across multiple patients;
+-  parameter sensitivity analysis;
+-  improved automatic seed detection;
+-  comparison with alternative classical segmentation methods;
+-  comparison with modern deep-learning-based segmentation approaches.
 
 ---
 
-# 17. Academic Context
+## License
 
-This repository represents the implementation developed for the **Image Processing** course at **Politecnico di Bari**.
+This project is released under the MIT License.
 
-The first phase corresponds to the methodology implemented and presented for the course examination.
-
-The subsequent automatic-seed and multi-slice experiments were developed as an extension to investigate the robustness and limitations of the original implementation.
-
-The project therefore documents both:
-
-1. the successful reproduction and implementation of the original experimental approach;
-2. the subsequent investigation of its limitations and possible directions for improvement.
-
----
-
-# 18. Citation
-
-If this implementation or methodology is referenced, please cite the original paper:
-
-> Huang Zhanpeng, Zhang Qi, Jiang Shizhong, Chen Guohua, "Medical Image Segmentation Based on the Watersheds and Regions Merging", 2016.
+See [LICENSE](LICENSE) for details.
 
 ---
 
 ## Author
 
 **Moise Ngoyi Kasanji**
-Master's student in Data Science & Artificial Intelligence
-Politecnico di Bari
+
+Master's student in Data Science and Artificial Intelligence
+
+Politecnico di Bari, Italy
+
+GitHub:
+
+[MoiseNgoyi98](https://github.com/MoiseNgoyi98)
+(.venv) user@moses-ngoyi:~/Documenti/University_of_Politecnico_di_BARI/Cours_master_one/Images_Processing/Project_Liver_Segmentation$
